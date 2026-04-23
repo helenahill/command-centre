@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Helena — Command Centre</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #B8860B; --gold-l: #FFF8E7; --gold-m: #E8C96A; --gold-d: #7B5900;
+    --forest: #1B5E3B; --forest-l: #E4F2EB; --forest-m: #6BAE8A; --forest-d: #0D3320;
+    --plum: #6B2D6B; --plum-l: #F5EAF5; --plum-m: #C48AC4; --plum-d: #3D1A3D;
+    --rouge: #8B1A2E; --rouge-l: #FDEAED; --rouge-m: #D4708A; --rouge-d: #5C0F1E;
+    --sapphire: #1A3D7B; --sapphire-l: #E8EEF8; --sapphire-m: #7098D4; --sapphire-d: #0D2040;
+    --jade: #1E6B45; --jade-l: #E6F4EC; --jade-m: #70B494; --jade-d: #0D3522;
+    --bg: #FAFAF8; --surface: #FFFFFF; --border: rgba(0,0,0,0.08);
+    --text: #1A1A1A; --text-2: #5A5A5A; --text-3: #999;
+    --radius: 14px; --radius-sm: 8px;
+    --shadow: 0 2px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* HEADER */
+  .site-header {
+    background: var(--text);
+    color: white;
+    padding: 28px 40px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .site-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; letter-spacing: .06em; }
+  .site-title span { font-style: italic; opacity: .6; font-size: 15px; margin-left: 12px; }
+  .date-pill { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; opacity: .5; }
+
+  /* TAB NAV */
+  .nav-wrap { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 40px; position: sticky; top: 77px; z-index: 90; box-shadow: var(--shadow); }
+  .nav { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; }
+  .nav::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 18px 22px 16px; font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; cursor: pointer; border: none; background: none;
+    color: var(--text-3); border-bottom: 3px solid transparent;
+    transition: all .25s; white-space: nowrap; font-family: 'Jost', sans-serif;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .tab-btn .ti { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .tab-btn:hover { color: var(--text-2); }
+  .tab-btn.active-h { color: var(--gold-d); border-bottom-color: var(--gold); }
+  .tab-btn.active-f { color: var(--forest-d); border-bottom-color: var(--forest); }
+  .tab-btn.active-c { color: var(--plum-d); border-bottom-color: var(--plum); }
+  .tab-btn.active-p { color: var(--rouge-d); border-bottom-color: var(--rouge); }
+  .tab-btn.active-a { color: var(--sapphire-d); border-bottom-color: var(--sapphire); }
+  .tab-btn.active-d { color: var(--jade-d); border-bottom-color: var(--jade); }
+
+  /* SECTIONS */
+  .section { display: none; padding: 36px 40px 60px; animation: fadeUp .3s ease; }
+  .section.active { display: block; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  /* HERO STRIP */
+  .hero {
+    border-radius: var(--radius); padding: 28px 32px; margin-bottom: 28px;
+    display: flex; align-items: center; gap: 20px; color: white;
+    position: relative; overflow: hidden;
+  }
+  .hero::after { content:''; position:absolute; right:-20px; top:-30px; width:180px; height:180px; border-radius:50%; background:rgba(255,255,255,.06); }
+  .hero-icon { font-size: 32px; flex-shrink: 0; }
+  .hero-title { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 400; line-height: 1; }
+  .hero-sub { font-size: 12px; opacity: .7; margin-top: 5px; letter-spacing: .03em; }
+  .hero-h { background: linear-gradient(135deg, #8B6200, #C49A18); }
+  .hero-f { background: linear-gradient(135deg, #0D3D22, #237A4A); }
+  .hero-c { background: linear-gradient(135deg, #3D1A3D, #8B3A8B); }
+  .hero-p { background: linear-gradient(135deg, #5C0F1E, #A82040); }
+  .hero-a { background: linear-gradient(135deg, #0D2040, #2252A0); }
+  .hero-d { background: linear-gradient(135deg, #0D3522, #267A52); }
+
+  /* METRIC GRID */
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .metric { background: var(--surface); border-radius: var(--radius-sm); padding: 18px 20px; box-shadow: var(--shadow); border-top: 3px solid transparent; }
+  .metric-lbl { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
+  .metric-val { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 500; line-height: 1; color: var(--text); }
+  .metric-sub { font-size: 11px; color: var(--text-3); margin-top: 5px; }
+  .m-h { border-top-color: var(--gold); } .m-f { border-top-color: var(--forest); }
+  .m-c { border-top-color: var(--plum); } .m-p { border-top-color: var(--rouge); }
+  .m-a { border-top-color: var(--sapphire); } .m-d { border-top-color: var(--jade); }
+
+  /* GRID */
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media(max-width: 700px) { .two { grid-template-columns: 1fr; } .site-header, .nav-wrap, .section { padding-left: 20px; padding-right: 20px; } }
+
+  /* CARDS */
+  .card { background: var(--surface); border-radius: var(--radius); padding: 24px 26px; margin-bottom: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+  .card-title { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+
+  /* CHIPS */
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 13px; border-radius: 30px; font-size: 12px; font-weight: 500; margin: 3px; cursor: pointer; border: 1.5px solid; transition: all .2s; }
+  .chip-h { border-color: var(--gold-m); background: var(--gold-l); color: var(--gold-d); }
+  .chip-h.done { background: var(--gold); border-color: var(--gold); color: white; }
+  .chip-f { border-color: var(--forest-m); background: var(--forest-l); color: var(--forest-d); }
+  .chip-f.done { background: var(--forest); border-color: var(--forest); color: white; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .4; }
+  .chip.done .dot { opacity: 1; }
+
+  /* RULE ITEMS */
+  .rule { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: background .15s; }
+  .rule:last-child { border-bottom: none; }
+  .rule:hover { background: var(--bg); margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-radius: 6px; }
+  .rule-check {
+    width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border);
+    flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center;
+    transition: all .2s; background: var(--bg);
+  }
+  .rule-check.on { background: currentColor; border-color: currentColor; }
+  .rule-check.on svg { display: block; }
+  .rule-check svg { display: none; }
+  .rule-name { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; }
+  .rule-sub { font-size: 11px; color: var(--text-3); margin-top: 3px; font-style: italic; line-height: 1.4; }
+  .ch-h .rule-check { color: var(--gold); }
+  .ch-f .rule-check { color: var(--forest); }
+  .ch-c .rule-check { color: var(--plum); }
+  .ch-p .rule-check { color: var(--rouge); }
+  .ch-a .rule-check { color: var(--sapphire); }
+  .ch-d .rule-check { color: var(--jade); }
+
+  /* BADGES */
+  .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 20px; letter-spacing: .04em; }
+  .bd-urgent { background: #FFEBEB; color: #A32D2D; }
+  .bd-warn { background: #FFF3E0; color: #8B5000; }
+  .bd-ok { background: #E8F5E9; color: #2E7D32; }
+  .bd-info { background: #E3F2FD; color: #1565C0; }
+  .bd-gold { background: var(--gold-l); color: var(--gold-d); }
+  .bd-forest { background: var(--forest-l); color: var(--forest-d); }
+  .bd-plum { background: var(--plum-l); color: var(--plum-d); }
+  .bd-sapph { background: var(--sapphire-l); color: var(--sapphire-d); }
+  .bd-jade { background: var(--jade-l); color: var(--jade-d); }
+
+  /* ROWS */
+  .drow { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .drow:last-child { border-bottom: none; }
+  .drow-name { font-weight: 500; color: var(--text); }
+  .drow-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+  /* PROGRESS BAR */
+  .pbar { height: 5px; background: var(--bg); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .pfill { height: 100%; border-radius: 3px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+
+  /* DAY DOTS */
+  .day-dots { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .day-dot { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; letter-spacing: .05em; cursor: pointer; transition: all .2s; color: var(--text-3); text-transform: uppercase; }
+  .day-dot.on { background: var(--sapphire); border-color: var(--sapphire); color: white; }
+  .day-dot:hover:not(.on) { border-color: var(--sapphire-m); color: var(--sapphire); }
+
+  /* SESSION LOG */
+  .session { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .session:last-child { border-bottom: none; }
+  .stars { color: #D4A017; font-size: 14px; }
+
+  /* INPUTS */
+  .field-group { margin-bottom: 14px; }
+  .field-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; display: block; }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%; padding: 10px 14px; font-size: 13px; font-family: 'Jost', sans-serif;
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg); color: var(--text); outline: none; transition: border .2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: rgba(0,0,0,0.25); }
+  textarea { resize: vertical; min-height: 60px; }
+  .input-row { display: flex; gap: 10px; align-items: flex-end; }
+  .input-row .field-group { flex: 1; margin-bottom: 0; }
+
+  /* BUTTONS */
+  .btn { padding: 10px 18px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-family: 'Jost', sans-serif; border-radius: var(--radius-sm); border: none; cursor: pointer; transition: all .2s; }
+  .btn-h { background: var(--gold); color: white; } .btn-h:hover { background: var(--gold-d); }
+  .btn-f { background: var(--forest); color: white; } .btn-f:hover { background: var(--forest-d); }
+  .btn-c { background: var(--plum); color: white; } .btn-c:hover { background: var(--plum-d); }
+  .btn-a { background: var(--sapphire); color: white; } .btn-a:hover { background: var(--sapphire-d); }
+  .btn-d { background: var(--jade); color: white; } .btn-d:hover { background: var(--jade-d); }
+  .btn-ghost { background: var(--bg); color: var(--text-2); border: 1.5px solid var(--border); } .btn-ghost:hover { border-color: rgba(0,0,0,0.2); }
+
+  /* GIRL TABS */
+  .girl-tabs { display: flex; background: var(--bg); border-radius: var(--radius-sm); padding: 4px; gap: 4px; width: fit-content; margin-bottom: 20px; border: 1px solid var(--border); }
+  .gtab { padding: 8px 20px; font-size: 12px; font-weight: 600; letter-spacing: .05em; border-radius: 6px; border: none; background: none; cursor: pointer; color: var(--text-3); transition: all .2s; font-family: 'Jost', sans-serif; }
+  .gtab.on { background: var(--jade); color: white; box-shadow: var(--shadow); }
+
+  /* VOCAB PILLS */
+  .vocab-pill { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 6px; font-size: 12px; margin: 3px; border: 1.5px solid var(--border); cursor: pointer; background: var(--bg); color: var(--text); transition: all .2s; }
+  .vocab-pill.learned { background: var(--jade-l); border-color: var(--jade-m); color: var(--jade-d); }
+
+  /* PIPELINE STAGE */
+  .stage-select { font-size: 11px; padding: 4px 8px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; font-family: 'Jost', sans-serif; width: auto; color: var(--text); }
+
+  /* SEPARATOR */
+  .sep { height: 1px; background: var(--border); margin: 18px 0; }
+
+  /* EMPTY STATE */
+  .empty { font-size: 13px; color: var(--text-3); padding: 12px 0; font-style: italic; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-title">Helena Gorrand <span>Command Centre</span></div>
+  <div class="date-pill" id="live-date"></div>
+</header>
+
+<div class="nav-wrap">
+  <nav class="nav">
+    <button class="tab-btn active-h" data-tab="hermes" onclick="switchTab('hermes',this,'h')">
+      <span class="ti" style="background:var(--gold)"></span> Hermès CDG
+    </button>
+    <button class="tab-btn" data-tab="finance" onclick="switchTab('finance',this,'f')">
+      <span class="ti" style="background:var(--forest)"></span> Finance
+    </button>
+    <button class="tab-btn" data-tab="creams" onclick="switchTab('creams',this,'c')">
+      <span class="ti" style="background:var(--plum)"></span> Creams Brand
+    </button>
+    <button class="tab-btn" data-tab="pierrefeu" onclick="switchTab('pierrefeu',this,'p')">
+      <span class="ti" style="background:var(--rouge)"></span> Pierrefeu
+    </button>
+    <button class="tab-btn" data-tab="accent" onclick="switchTab('accent',this,'a')">
+      <span class="ti" style="background:var(--sapphire)"></span> Accent
+    </button>
+    <button class="tab-btn" data-tab="daughters" onclick="switchTab('daughters',this,'d')">
+      <span class="ti" style="background:var(--jade)"></span> Daughters
+    </button>
+  </nav>
+</div>
+
+<!-- ═══════════════════════════════ HERMÈS ═══════════════════════════════ -->
+<section id="hermes" class="section active">
+  <div class="hero hero-h">
+    <div class="hero-icon">✦</div>
+    <div><div class="hero-title">Hermès CDG — Les Abrets</div><div class="hero-sub">MSc Strategic Accounting & Finance · Alternance · Application</div></div>
+  </div>
+  <div class="metrics">
+    <div class="metric m-h"><div class="metric-lbl">UCL modules</div><div class="metric-val" id="h-ucl">0/9</div><div class="metric-sub">completed</div></div>
+    <div class="metric m-h"><div class="metric-lbl">CDG topics</div><div class="metric-val" id="h-cdg">0/8</div><div class="metric-sub">completed</div></div>
+    <div class="metric m-h"><div class="metric-lbl">Days to UCL</div><div class="metric-val" id="h-days">—</div><div class="metric-sub">1 September 2026</div></div>
+    <div class="metric m-h"><div class="metric-lbl">Application</div><div class="metric-val" style="font-size:18px;margin-top:4px">Active</div><div class="metric-sub">Les Abrets alternance</div></div>
+  </div>
+  <div class="two">
+    <div class="card">
+      <div class="card-title">UCL MSc — modules</div>
+      <div id="ucl-chips"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">CDG technical topics</div>
+      <div id="cdg-chips"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Key milestones</div>
+    <div id="h-deadlines"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ FINANCE ═══════════════════════════════ -->
+<section id="finance" class="section">
+  <div class="hero hero-f">
+    <div class="hero-icon">◈</div>
+    <div><div class="hero-title">Personal Finance</div><div class="hero-sub">Crypto portfolio · Income streams · Sovereignty target</div></div>
+  </div>
+  <div class="metrics">
+    <div class="metric m-f"><div class="metric-lbl">Crypto total</div><div class="metric-val" id="f-total">€0</div></div>
+    <div class="metric m-f"><div class="metric-lbl">Monthly income</div><div class="metric-val" id="f-inc">€0</div></div>
+    <div class="metric m-f"><div class="metric-lbl">Sovereignty target</div><div class="metric-val">€500k</div></div>
+    <div class="metric m-f"><div class="metric-lbl">Progress</div><div class="metric-val" id="f-pct">0%</div><div class="pbar"><div class="pfill" id="f-bar" style="background:var(--forest);width:0%"></div></div></div>
+  </div>
+  <div class="two">
+    <div class="card">
+      <div class="card-title">Crypto holdings</div>
+      <div id="crypto-rows"></div>
+      <div class="sep"></div>
+      <div class="input-row">
+        <div class="field-group"><label class="field-label">Coin</label><input type="text" id="c-coin" placeholder="BTC"></div>
+        <div class="field-group"><label class="field-label">Value €</label><input type="number" id="c-val" placeholder="5000"></div>
+        <button class="btn btn-f" onclick="addCrypto()" style="flex-shrink:0">Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Income streams</div>
+      <div id="income-rows"></div>
+      <div class="sep"></div>
+      <div class="input-row">
+        <div class="field-group"><label class="field-label">Source</label><input type="text" id="i-src" placeholder="Creams brand"></div>
+        <div class="field-group"><label class="field-label">Monthly €</label><input type="number" id="i-amt" placeholder="500"></div>
+        <button class="btn btn-f" onclick="addIncome()" style="flex-shrink:0">Add</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Sovereignty milestones</div>
+    <div id="sov-rows" class="ch-f"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ CREAMS ═══════════════════════════════ -->
+<section id="creams" class="section">
+  <div class="hero hero-c">
+    <div class="hero-icon">❋</div>
+    <div><div class="hero-title">Creams Brand</div><div class="hero-sub">Product pipeline · Brand milestones · Q1 2027 launch</div></div>
+  </div>
+  <div class="metrics">
+    <div class="metric m-c"><div class="metric-lbl">Products</div><div class="metric-val" id="cr-ct">4</div><div class="metric-sub">in pipeline</div></div>
+    <div class="metric m-c"><div class="metric-lbl">Milestones</div><div class="metric-val" id="cr-done">0/10</div></div>
+    <div class="metric m-c"><div class="metric-lbl">Launch target</div><div class="metric-val" style="font-size:20px;margin-top:6px">Q1 2027</div></div>
+    <div class="metric m-c"><div class="metric-lbl">Next action</div><div class="metric-val" style="font-size:14px;margin-top:4px" id="cr-next">Brand name</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Product pipeline</div>
+    <div id="cr-pipeline"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Brand milestones</div>
+    <div id="cr-milestones" class="ch-c"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ PIERREFEU ═══════════════════════════════ -->
+<section id="pierrefeu" class="section">
+  <div class="hero hero-p">
+    <div class="hero-icon">◆</div>
+    <div><div class="hero-title">Pierrefeu Standard</div><div class="hero-sub">Nadine de Rothschild · Hosting protocol · Savoir-vivre</div></div>
+  </div>
+  <div class="metrics">
+    <div class="metric m-p"><div class="metric-lbl">Rules mastered</div><div class="metric-val" id="pf-rc">0/20</div></div>
+    <div class="metric m-p"><div class="metric-lbl">Checklist ready</div><div class="metric-val" id="pf-cc">0%</div></div>
+    <div class="metric m-p"><div class="metric-lbl">Last occasion</div><div class="metric-val" style="font-size:16px;margin-top:4px">20 Apr</div><div class="metric-sub">Lamb Chops Provençal</div></div>
+    <div class="metric m-p"><div class="metric-lbl">Table</div><div class="metric-val" style="font-size:12px;margin-top:6px;line-height:1.3">Pillivuyt Sancerre</div></div>
+  </div>
+  <div class="two">
+    <div class="card">
+      <div class="card-title">Pre-event checklist</div>
+      <div id="pf-checklist" class="ch-p"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Nadine de Rothschild — 20 rules to internalise</div>
+      <div id="pf-rules" class="ch-p"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ ACCENT ═══════════════════════════════ -->
+<section id="accent" class="section">
+  <div class="hero hero-a">
+    <div class="hero-icon">◉</div>
+    <div><div class="hero-title">Accent Work — Elspeth Brodie</div><div class="hero-sub">One focus per week · Daily practice · Session log · RADA prep</div></div>
+  </div>
+  <div class="metrics">
+    <div class="metric m-a"><div class="metric-lbl">This week's focus</div><div class="metric-val" style="font-size:14px;margin-top:6px;line-height:1.3" id="ac-focus-d">—</div></div>
+    <div class="metric m-a"><div class="metric-lbl">Days practised</div><div class="metric-val" id="ac-days">0/7</div></div>
+    <div class="metric m-a"><div class="metric-lbl">Elspeth sessions</div><div class="metric-val" id="ac-sct">0</div></div>
+    <div class="metric m-a"><div class="metric-lbl">Weeks done</div><div class="metric-val" id="ac-wct">0</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Set this week's focus</div>
+    <div class="input-row" style="margin-bottom:20px">
+      <div class="field-group" style="flex:1;margin:0"><input type="text" id="ac-inp" placeholder="e.g. Softening the hard T — butter, better, matter, utter"></div>
+      <button class="btn btn-a" onclick="setFocus()">Set focus</button>
+    </div>
+    <div class="field-label" style="margin-bottom:12px">Tick each day you practise</div>
+    <div class="day-dots" id="ac-dots"></div>
+  </div>
+  <div class="two">
+    <div class="card">
+      <div class="card-title">Log an Elspeth session</div>
+      <div class="field-group"><label class="field-label">Date</label><input type="text" id="ac-date" placeholder="23 Apr 2026"></div>
+      <div class="field-group"><label class="field-label">Focus covered</label><input type="text" id="ac-topic" placeholder="Vowel placement, R softening..."></div>
+      <div class="field-group"><label class="field-label">Rating</label>
+        <select id="ac-rating"><option>★★★★★ Excellent</option><option>★★★★ Good</option><option>★★★ Steady</option><option>★★ Needs work</option></select>
+      </div>
+      <button class="btn btn-a" onclick="addSession()">Log session</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Session history</div>
+      <div id="ac-log"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Completed weeks archive</div>
+    <div id="ac-hist"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ DAUGHTERS ═══════════════════════════════ -->
+<section id="daughters" class="section">
+  <div class="hero hero-d">
+    <div class="hero-icon">❀</div>
+    <div><div class="hero-title">Daughters — French</div><div class="hero-sub">Juliette · Joséphine · Isabelle · weekly vocabulary & grammar</div></div>
+  </div>
+  <div class="girl-tabs">
+    <button class="gtab on" onclick="switchGirl('j',this)">Juliette (9)</button>
+    <button class="gtab" onclick="switchGirl('jo',this)">Joséphine (7)</button>
+    <button class="gtab" onclick="switchGirl('is',this)">Isabelle (6)</button>
+  </div>
+
+  <div id="g-j">
+    <div class="metrics">
+      <div class="metric m-d"><div class="metric-lbl">Words learned</div><div class="metric-val" id="j-wct">0</div></div>
+      <div class="metric m-d"><div class="metric-lbl">Weekly target</div><div class="metric-val">10</div></div>
+      <div class="metric m-d"><div class="metric-lbl">Grammar done</div><div class="metric-val" id="j-gct">0/6</div></div>
+    </div>
+    <div class="card"><div class="card-title">Juliette — vocabulary</div><div id="j-vocab"></div><div class="sep"></div><div class="input-row"><div class="field-group" style="flex:1;margin:0"><input type="text" id="j-word" placeholder="e.g. la forêt — forest"></div><button class="btn btn-d" onclick="addWord('j')">Add</button></div></div>
+    <div class="card"><div class="card-title">Juliette — grammar topics</div><div id="j-gram" class="ch-d"></div></div>
+  </div>
+  <div id="g-jo" style="display:none">
+    <div class="metrics">
+      <div class="metric m-d"><div class="metric-lbl">Words learned</div><div class="metric-val" id="jo-wct">0</div></div>
+      <div class="metric m-d"><div class="metric-lbl">Weekly target</div><div class="metric-val">8</div></div>
+      <div class="metric m-d"><div class="metric-lbl">Grammar done</div><div class="metric-val" id="jo-gct">0/6</div></div>
+    </div>
+    <div class="card"><div class="card-title">Joséphine — vocabulary</div><div id="jo-vocab"></div><div class="sep"></div><div class="input-row"><div class="field-group" style="flex:1;margin:0"><input type="text" id="jo-word" placeholder="e.g. le soleil — sun"></div><button class="btn btn-d" onclick="addWord('jo')">Add</button></div></div>
+    <div class="card"><div class="card-title">Joséphine — grammar topics</div><div id="jo-gram" class="ch-d"></div></div>
+  </div>
+  <div id="g-is" style="display:none">
+    <div class="metrics">
+      <div class="metric m-d"><div class="metric-lbl">Words learned</div><div class="metric-val" id="is-wct">0</div></div>
+      <div class="metric m-d"><div class="metric-lbl">Weekly target</div><div class="metric-val">6</div></div>
+      <div class="metric m-d"><div class="metric-lbl">Grammar done</div><div class="metric-val" id="is-gct">0/6</div></div>
+    </div>
+    <div class="card"><div class="card-title">Isabelle — vocabulary</div><div id="is-vocab"></div><div class="sep"></div><div class="input-row"><div class="field-group" style="flex:1;margin:0"><input type="text" id="is-word" placeholder="e.g. le chat — cat"></div><button class="btn btn-d" onclick="addWord('is')">Add</button></div></div>
+    <div class="card"><div class="card-title">Isabelle — grammar topics</div><div id="is-gram" class="ch-d"></div></div>
+  </div>
+</section>
+
+<script>
+// ── LIVE DATE ──
+const dateEl = document.getElementById('live-date');
+function updateDate() {
+  dateEl.textContent = new Date().toLocaleDateString('en-GB', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+updateDate(); setInterval(updateDate, 60000);
+
+// ── LOCAL STORAGE ──
+function save(k, v) { try { localStorage.setItem('hgcc_'+k, JSON.stringify(v)); } catch(e){} }
+function load(k, def) { try { const v = localStorage.getItem('hgcc_'+k); return v ? JSON.parse(v) : def; } catch(e) { return def; } }
+
+// ── STATE ──
+const S = {
+  ucl: load('ucl', ['Accounting for Business Decisions','Financial Reporting Landscape','Applied Managerial Finance','Behavioural Finance','Strategic Management Accounting','Financial Statements Analysis','Analytics & Financial Decision Making','Global Financial Markets','Strategic Financial Project'].map(n=>({n,done:false}))),
+  cdg: load('cdg', ['Comptabilité analytique','Budget & OVAR method','Variance analysis & narrative','Tableau de bord & KPIs','Clôture mensuelle','P&L construction','Production indicators','Inventory control'].map(n=>({n,done:false}))),
+  crypto: load('crypto', []),
+  income: load('income', []),
+  sov: load('sov', ['First €10k invested','€50k portfolio reached','€100k portfolio reached','First passive income stream live','Monthly passive income €1k','Monthly passive income €5k','€500k sovereignty target'].map(n=>({n,done:false}))),
+  crPipe: load('crPipe', [{n:'Hero face cream',s:'Formulation'},{n:'Eye serum',s:'Concept'},{n:'Hand cream',s:'Concept'},{n:'Body oil',s:'Research'}]),
+  crMile: load('crMile', ['Brand name finalised','Visual identity & logo','Formulator contracted','First samples received','Packaging selected','Legal / trademark filed','Website live','Press samples sent','Soft launch','First €10k revenue'].map(n=>({n,done:false}))),
+  pfChk: load('pfChk', ['Table linen — pressed, no creases','Pillivuyt Sancerre — polished, no smears','Crystal — polished with steam cloth','Flowers arranged, in water 2 hours prior','Menu planned & mise en place complete','Canapés prepared (shrimp butter 2:1 ratio)','Table set — fork left, knife right, dessert above','Bread rolls in basket, no cutting','Guest seating planned','Dress selected, pressed, accessories laid out','Music — low, classical or jazz','Candles lit 10 minutes before arrival'].map(n=>({n,done:false}))),
+  pfRules: load('pfRules', [
+    {n:'Never discuss money at the table',sub:'Wealth is shown, never spoken about',done:false},
+    {n:'Greet every guest at the door — never from a distance',sub:'Rise, move toward them, take their coat yourself',done:false},
+    {n:'Never refill your own glass',sub:'A well-run table ensures no guest needs to ask',done:false},
+    {n:'Bread is torn, never cut',sub:'A knife to bread is never correct',done:false},
+    {n:'Perfume is subtle — never announced before you enter',sub:'What lingers, not what precedes',done:false},
+    {n:'A handwritten thank-you note within 48 hours',sub:'One of the last marks of true distinction',done:false},
+    {n:'Never criticise the host\'s food at table',sub:'Silence is always preferable to a remark',done:false},
+    {n:'Children at table behave as adults expect — prepare them',sub:'They represent you before they represent themselves',done:false},
+    {n:'Leave before the evening becomes tired',sub:'Depart at the high point — always remembered well',done:false},
+    {n:'Do not monopolise the conversation',sub:'The elegant woman listens as much as she speaks',done:false},
+    {n:'Sit straight — never lean back until coffee',sub:'Posture communicates authority without a word',done:false},
+    {n:'Dress slightly above the occasion, never below',sub:'Better overdressed than to seem indifferent',done:false},
+    {n:'No phone at the table — absolute rule',sub:'No exceptions, ever',done:false},
+    {n:'Offer to help once — accept a refusal gracefully',sub:'To insist is to embarrass the host',done:false},
+    {n:'Compliment specifically, not generically',sub:'"The lamb was perfectly rested" — not "everything was lovely"',done:false},
+    {n:'Arrive 10 minutes late — never on time',sub:'On time embarrasses the host mid-preparation',done:false},
+    {n:'Avoid illness, death, and money as topics',sub:'Politics only when you know the room exactly',done:false},
+    {n:'A gift at arrival — wine is always correct',sub:'Flowers may inconvenience mid-service',done:false},
+    {n:'The hostess eats last, always',sub:'You eat when your guests are eating, never before',done:false},
+    {n:'Your voice drops at table, never rises',sub:'The woman who controls her volume controls the room',done:false}
+  ]),
+  acFocus: load('acFocus',''),
+  acDays: load('acDays',[0,0,0,0,0,0,0]),
+  acSess: load('acSess',[]),
+  acHist: load('acHist',[]),
+  words: load('words',{j:[],jo:[],is:[]}),
+  gramDone: load('gramDone',{j:[],jo:[],is:[]}),
+  grammar: {
+    j:['Le/La/Les — gender & articles','Passé composé (avoir)','Passé composé (être)','Imparfait vs passé composé','Futur simple','Pronouns — il/elle/ils/elles'],
+    jo:['Le/La/Les — definite articles','Un/Une/Des — indefinite','Présent tense (-er verbs)','Présent tense (être & avoir)','Adjectif agreement','Negation — ne…pas'],
+    is:['Colours — gender agreement','Numbers 1–100','Body parts vocabulary','Days & months','Questions — Qu\'est-ce que c\'est?','Plurals — the -s rule']
+  }
+};
+
+const chk = `<svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1,5 4,8 9,2" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+// ── NAV ──
+let activeColor = 'h';
+function switchTab(id, el, color) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(t=>{ t.className = t.className.replace(/active-\w/g,'').trim(); });
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active-'+color);
+  activeColor = color;
+}
+function switchGirl(g, el) {
+  ['j','jo','is'].forEach(id=>{ const el2=document.getElementById('g-'+id); if(el2) el2.style.display='none'; });
+  document.querySelectorAll('.gtab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('g-'+g).style.display='';
+  el.classList.add('on');
+}
+
+// ── RULE ITEM ──
+function ruleItem(name, sub, done, onclick, color) {
+  const c = `var(--${color||'jade'})`;
+  return `<div class="rule" onclick="${onclick}">
+    <div class="rule-check ${done?'on':''}" style="color:${c}">${done?chk:''}</div>
+    <div><div class="rule-name">${name}</div>${sub?`<div class="rule-sub">${sub}</div>`:''}</div>
+  </div>`;
+}
+
+// ── HERMÈS ──
+function rH() {
+  const ud=S.ucl.filter(m=>m.done).length, cd=S.cdg.filter(m=>m.done).length;
+  document.getElementById('h-ucl').textContent=ud+'/9';
+  document.getElementById('h-cdg').textContent=cd+'/8';
+  const diff=Math.ceil((new Date('2026-09-01')-new Date())/864e5);
+  document.getElementById('h-days').textContent=diff>0?diff:'Now';
+  document.getElementById('ucl-chips').innerHTML=S.ucl.map((m,i)=>`<div class="chip chip-h ${m.done?'done':''}" onclick="tUCL(${i})"><span class="dot"></span>${m.n}</div>`).join('');
+  document.getElementById('cdg-chips').innerHTML=S.cdg.map((m,i)=>`<div class="chip chip-f ${m.done?'done':''}" onclick="tCDG(${i})"><span class="dot"></span>${m.n}</div>`).join('');
+  const sc={urgent:'bd-urgent',warn:'bd-warn',info:'bd-info',ok:'bd-ok'};
+  const sl={urgent:'Submit now',warn:'Coming soon',info:'On track',ok:'Done'};
+  const dd=[{d:'May 2026',t:'Hermès alternance application',s:'urgent'},{d:'Jun 2026',t:'Interview preparation complete',s:'warn'},{d:'Sep 2026',t:'UCL MSc Strategic Accounting & Finance begins',s:'info'},{d:'Sep 2026',t:'Alternance starts — Les Abrets',s:'info'},{d:'Jan 2027',t:'First semester review',s:'ok'}];
+  document.getElementById('h-deadlines').innerHTML=dd.map(d=>`<div class="drow"><div><div class="drow-name">${d.t}</div><div class="drow-sub">${d.d}</div></div><span class="badge ${sc[d.s]}">${sl[d.s]}</span></div>`).join('');
+}
+function tUCL(i){S.ucl[i].done=!S.ucl[i].done;save('ucl',S.ucl);rH();}
+function tCDG(i){S.cdg[i].done=!S.cdg[i].done;save('cdg',S.cdg);rH();}
+
+// ── FINANCE ──
+function rF() {
+  const tot=S.crypto.reduce((a,c)=>a+c.val,0), inc=S.income.reduce((a,i)=>a+i.amt,0);
+  const pct=Math.min(100,Math.round(tot/5000));
+  document.getElementById('f-total').textContent='€'+tot.toLocaleString('fr-FR');
+  document.getElementById('f-inc').textContent='€'+inc.toLocaleString('fr-FR');
+  document.getElementById('f-pct').textContent=pct+'%';
+  document.getElementById('f-bar').style.width=pct+'%';
+  document.getElementById('crypto-rows').innerHTML=S.crypto.length?S.crypto.map((c,i)=>`<div class="drow"><div><div class="drow-name">${c.coin}</div><div class="drow-sub">${Math.round(c.val/tot*100)}% of portfolio</div></div><div style="display:flex;gap:10px;align-items:center"><span style="font-size:14px;font-weight:500">€${c.val.toLocaleString('fr-FR')}</span><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px" onclick="remC(${i})">✕</button></div></div>`).join(''):'<div class="empty">No holdings added yet</div>';
+  document.getElementById('income-rows').innerHTML=S.income.length?S.income.map((s,i)=>`<div class="drow"><div class="drow-name">${s.src}</div><div style="display:flex;gap:10px;align-items:center"><span style="font-size:14px;font-weight:500">€${s.amt.toLocaleString('fr-FR')}/mo</span><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px" onclick="remI(${i})">✕</button></div></div>`).join(''):'<div class="empty">No streams added yet</div>';
+  document.getElementById('sov-rows').innerHTML=S.sov.map((m,i)=>ruleItem(m.n,'',m.done,`tSov(${i})`,'forest')).join('');
+}
+function addCrypto(){const co=document.getElementById('c-coin').value.trim().toUpperCase(),va=parseFloat(document.getElementById('c-val').value);if(!co||!va)return;S.crypto.push({coin:co,val:va});save('crypto',S.crypto);document.getElementById('c-coin').value='';document.getElementById('c-val').value='';rF();}
+function remC(i){S.crypto.splice(i,1);save('crypto',S.crypto);rF();}
+function addIncome(){const sr=document.getElementById('i-src').value.trim(),am=parseFloat(document.getElementById('i-amt').value);if(!sr||!am)return;S.income.push({src:sr,amt:am});save('income',S.income);document.getElementById('i-src').value='';document.getElementById('i-amt').value='';rF();}
+function remI(i){S.income.splice(i,1);save('income',S.income);rF();}
+function tSov(i){S.sov[i].done=!S.sov[i].done;save('sov',S.sov);rF();}
+
+// ── CREAMS ──
+function rC() {
+  const md=S.crMile.filter(m=>m.done).length;
+  document.getElementById('cr-done').textContent=md+'/10';
+  const nx=S.crMile.find(m=>!m.done);
+  document.getElementById('cr-next').textContent=nx?nx.n:'Complete!';
+  const sc={Concept:'bd-sapph',Research:'bd-warn',Formulation:'bd-plum',Sampling:'bd-gold',Ready:'bd-ok'};
+  document.getElementById('cr-pipeline').innerHTML=S.crPipe.map((p,i)=>`<div class="drow"><div class="drow-name">${p.n}</div><div style="display:flex;gap:8px;align-items:center"><span class="badge ${sc[p.s]||'bd-sapph'}">${p.s}</span><select class="stage-select" onchange="crS(${i},this.value)"><option>Concept</option><option>Research</option><option>Formulation</option><option>Sampling</option><option>Ready</option></select></div></div>`).join('');
+  document.getElementById('cr-milestones').innerHTML=S.crMile.map((m,i)=>ruleItem(m.n,'',m.done,`tMile(${i})`,'plum')).join('');
+}
+function crS(i,v){S.crPipe[i].s=v;save('crPipe',S.crPipe);rC();}
+function tMile(i){S.crMile[i].done=!S.crMile[i].done;save('crMile',S.crMile);rC();}
+
+// ── PIERREFEU ──
+function rP() {
+  const rc=S.pfRules.filter(r=>r.done).length, cc=S.pfChk.filter(c=>c.done).length;
+  document.getElementById('pf-rc').textContent=rc+'/20';
+  document.getElementById('pf-cc').textContent=Math.round(cc/S.pfChk.length*100)+'%';
+  document.getElementById('pf-checklist').innerHTML=S.pfChk.map((c,i)=>ruleItem(c.n,'',c.done,`tChk(${i})`,'rouge')).join('');
+  document.getElementById('pf-rules').innerHTML=S.pfRules.map((r,i)=>ruleItem(r.n,r.sub,r.done,`tRule(${i})`,'rouge')).join('');
+}
+function tChk(i){S.pfChk[i].done=!S.pfChk[i].done;save('pfChk',S.pfChk);rP();}
+function tRule(i){S.pfRules[i].done=!S.pfRules[i].done;save('pfRules',S.pfRules);rP();}
+
+// ── ACCENT ──
+const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+function rA() {
+  document.getElementById('ac-focus-d').textContent=S.acFocus||'—';
+  const done=S.acDays.filter(Boolean).length;
+  document.getElementById('ac-days').textContent=done+'/7';
+  document.getElementById('ac-sct').textContent=S.acSess.length;
+  document.getElementById('ac-wct').textContent=S.acHist.length;
+  document.getElementById('ac-dots').innerHTML=S.acDays.map((d,i)=>`<div class="day-dot ${d?'on':''}" onclick="tDay(${i})">${dayNames[i]}</div>`).join('');
+  document.getElementById('ac-log').innerHTML=S.acSess.length?S.acSess.slice().reverse().map(s=>`<div class="session"><div><div style="font-size:13px;font-weight:500">${s.topic}</div><div style="font-size:11px;color:var(--text-3)">${s.date}</div></div><span class="stars">${s.rating.split(' ')[0]}</span></div>`).join(''):'<div class="empty">No sessions logged yet</div>';
+  document.getElementById('ac-hist').innerHTML=S.acHist.length?S.acHist.slice().reverse().map(h=>`<div class="drow"><span class="drow-name">${h.focus}</span><span class="badge bd-sapph">${h.days}/7 days</span></div>`).join(''):'<div class="empty">Complete a full week to see history here</div>';
+}
+function setFocus(){const f=document.getElementById('ac-inp').value.trim();if(!f)return;if(S.acFocus&&S.acDays.some(Boolean))S.acHist.push({focus:S.acFocus,days:S.acDays.filter(Boolean).length});S.acFocus=f;S.acDays=[0,0,0,0,0,0,0];document.getElementById('ac-inp').value='';save('acFocus',S.acFocus);save('acDays',S.acDays);save('acHist',S.acHist);rA();}
+function tDay(i){S.acDays[i]=S.acDays[i]?0:1;save('acDays',S.acDays);rA();}
+function addSession(){const d=document.getElementById('ac-date').value.trim(),t=document.getElementById('ac-topic').value.trim(),r=document.getElementById('ac-rating').value;if(!t)return;S.acSess.push({date:d||'Today',topic:t,rating:r});save('acSess',S.acSess);document.getElementById('ac-date').value='';document.getElementById('ac-topic').value='';rA();}
+
+// ── DAUGHTERS ──
+function rD() {
+  ['j','jo','is'].forEach(g=>{
+    const wd=S.words[g],gd=S.gramDone[g],gr=S.grammar[g];
+    document.getElementById(g+'-wct').textContent=wd.filter(w=>w.done).length;
+    document.getElementById(g+'-gct').textContent=gd.length+'/'+gr.length;
+    document.getElementById(g+'-vocab').innerHTML=wd.length?wd.map((w,i)=>`<div class="vocab-pill ${w.done?'learned':''}" onclick="tWord('${g}',${i})">${w.done?'✓ ':' '}${w.text}</div>`).join(''):'<div class="empty">Add words below</div>';
+    document.getElementById(g+'-gram').innerHTML=gr.map((t,i)=>ruleItem(t,'',gd.includes(i),`tGram('${g}',${i})`,'jade')).join('');
+  });
+}
+function addWord(g){const inp=document.getElementById(g+'-word'),v=inp.value.trim();if(!v)return;S.words[g].push({text:v,done:false});inp.value='';save('words',S.words);rD();}
+function tWord(g,i){S.words[g][i].done=!S.words[g][i].done;save('words',S.words);rD();}
+function tGram(g,i){const a=S.gramDone[g],idx=a.indexOf(i);idx>=0?a.splice(idx,1):a.push(i);save('gramDone',S.gramDone);rD();}
+
+// ── INIT ──
+rH();rF();rC();rP();rA();rD();
+</script>
+</body>
+</html>
